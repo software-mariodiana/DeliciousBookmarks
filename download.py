@@ -13,6 +13,7 @@
 import json
 import os
 import os.path
+import sys
 import urllib.request
 
 
@@ -90,7 +91,12 @@ def main(username, tagFilePath=None):
 
 if __name__ == '__main__':
     # Set username for account.
-    username = 'mario.d'
+    username = ''
+    try:
+        username = sys.argv[1]
+    except:
+        print("Usage: python3 download.py <username>")
+        sys.exit(1)
     # If we've had trouble with getting the tags, we can load them manually.
     path = os.path.join(os.path.dirname(os.getcwd()), 'tags.json')
     if os.path.exists(path):
