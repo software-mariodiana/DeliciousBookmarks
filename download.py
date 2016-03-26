@@ -65,7 +65,7 @@ def loadTags(username, path):
     if path:
         tags = loadTagsFromFile(path)
     else:
-        tags = json.loads(fetchTags(username)
+        tags = json.loads(fetchTags(username))
     return tags
 
 
