@@ -7,9 +7,10 @@
 #
 # LICENSE: BSD v3.
 #
-# TOUCHED: 2016.03.25
+# TOUCHED: 2016.03.26
 #
 
+import glob
 import json
 import os
 import os.path
@@ -25,7 +26,8 @@ def fetchDataAtUri(uri):
     Return data in JSON format as bytes for 'uri'.
     """
     data = None
-    with urllib.request.urlopen(uri) as f:
+    # The Delicious server seems spotty lately, so we set a longer timeout.
+    with urllib.request.urlopen(uri, timeout=90) as f:
         data = f.read()
     return data
 
@@ -69,6 +71,15 @@ def loadTags(username, path):
     return tags
 
 
+def loadSetOfPreviouslyDownloadedTags(directory):
+    """
+    Return set of tags previously downloaded to 'directory'.
+    """
+    files = glob.glob(os.path.join(directory, '*.json'))
+    tags = [os.path.splitext(os.path.basename(f))[0] for f in files]
+    return set(tags)
+
+
 def main(username, tagFilePath=None):
     """
     Retrieve bookmarks for 'username': max 100 per tag, per Delicious restrictions.
@@ -76,16 +87,18 @@ def main(username, tagFilePath=None):
     directory = 'data'
     if not os.path.exists(directory):
         os.makedirs(directory)
+    downloadedTags = loadSetOfPreviouslyDownloadedTags(directory)
     with open(os.path.join(directory, 'bookmarks.log'), 'w') as log:
         tags = loadTags(username, tagFilePath)
         # Doing everything in 1 thread reduces load on the Delicious server.
         for aKey in tags.keys():
             bookmarks = fetchBookmarksForTag(aKey, username)
             file = os.path.join(directory, '%s.json' % (aKey))
-            if os.path.exists(file):
+            if aKey in downloadedTags:
                 continue
             with open(file, 'w') as f:
                 f.write(bookmarks)
+            downloadedTags.add(aKey)
             print(aKey)
             if tags[aKey] > 100:
                 # We want to know if we're missing bookmarks for a tag.
