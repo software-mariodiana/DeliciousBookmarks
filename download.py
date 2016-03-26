@@ -15,6 +15,7 @@ import json
 import os
 import os.path
 import sys
+import urllib.error
 import urllib.request
 
 
@@ -26,9 +27,13 @@ def fetchDataAtUri(uri):
     Return data in JSON format as bytes for 'uri'.
     """
     data = None
-    # The Delicious server seems spotty lately, so we set a longer timeout.
-    with urllib.request.urlopen(uri, timeout=90) as f:
-        data = f.read()
+    try:
+        # The Delicious server seems spotty lately, so we set a longer timeout.
+        with urllib.request.urlopen(uri, timeout=90) as f:
+            data = f.read()
+    except urllib.error.HTTPError as err:
+        print(uri)
+        raise
     return data
 
 
@@ -71,13 +76,22 @@ def loadTags(username, path):
     return tags
 
 
-def loadSetOfPreviouslyDownloadedTags(directory):
+def loadListOfPreviouslyDownloadedTags(directory):
     """
-    Return set of tags previously downloaded to 'directory'.
+    Return list of tags previously downloaded to 'directory'.
     """
     files = glob.glob(os.path.join(directory, '*.json'))
-    tags = [os.path.splitext(os.path.basename(f))[0] for f in files]
-    return set(tags)
+    return [os.path.splitext(os.path.basename(f))[0] for f in files]
+
+
+def filterPreviouslyDownloadedTags(tags, dataDirectory):
+    """
+    Return list of tags not downloaded by filtering previously downloaded tags.
+    """
+    downloadedTags = loadListOfPreviouslyDownloadedTags(dataDirectory)
+    for tag in downloadedTags:
+        tags.pop(tag, None)
+    return tags
 
 
 def main(username, tagFilePath=None):
@@ -85,24 +99,32 @@ def main(username, tagFilePath=None):
     Retrieve bookmarks for 'username': max 100 per tag, per Delicious restrictions.
     """
     directory = 'data'
+    maxErrors = 3
+    errorCount = 0
     if not os.path.exists(directory):
         os.makedirs(directory)
-    downloadedTags = loadSetOfPreviouslyDownloadedTags(directory)
-    with open(os.path.join(directory, 'bookmarks.log'), 'w') as log:
+    with open(os.path.join(directory, 'bookmarks.log'), 'a') as log:
         tags = loadTags(username, tagFilePath)
+        tags = filterPreviouslyDownloadedTags(tags, directory)
+        print('Tags remaining: %d' % (len(tags)))
         # Doing everything in 1 thread reduces load on the Delicious server.
         for aKey in tags.keys():
-            bookmarks = fetchBookmarksForTag(aKey, username)
-            file = os.path.join(directory, '%s.json' % (aKey))
-            if aKey in downloadedTags:
-                continue
-            with open(file, 'w') as f:
-                f.write(bookmarks)
-            downloadedTags.add(aKey)
-            print(aKey)
-            if tags[aKey] > 100:
-                # We want to know if we're missing bookmarks for a tag.
-                log.write('%s: %d\n' % (aKey, tags[aKey]))
+            if errorCount >= maxErrors:
+                print("Maximum errors reached: exiting.")
+                break
+            try:
+                bookmarks = fetchBookmarksForTag(aKey, username)
+                file = os.path.join(directory, '%s.json' % (aKey))
+                with open(file, 'w') as f:
+                    f.write(bookmarks)
+                print(aKey)
+                if tags[aKey] > 100:
+                    # We want to know if we're missing bookmarks for a tag.
+                    log.write('%s: %d\n' % (aKey, tags[aKey]))
+            except urllib.error.HTTPError as err:
+                print('%s - HTTPError: %s' % (aKey, err.strerror))
+                errorCount += 1
+
 
 
 if __name__ == '__main__':
