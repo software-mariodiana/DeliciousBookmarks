@@ -81,7 +81,10 @@ def main(username, tagFilePath=None):
         # Doing everything in 1 thread reduces load on the Delicious server.
         for aKey in tags.keys():
             bookmarks = fetchBookmarksForTag(aKey, username)
-            with open(os.path.join(directory, '%s.json' % (aKey)), 'w') as f:
+            file = os.path.join(directory, '%s.json' % (aKey))
+            if os.path.exists(file):
+                continue
+            with open(file, 'w') as f:
                 f.write(bookmarks)
             print(aKey)
             if tags[aKey] > 100:
