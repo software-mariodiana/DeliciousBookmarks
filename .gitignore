@@ -2,6 +2,7 @@
 *~
 .DS_Store
 /data
-bookmarks.json
+bookmarks.*
+delicious.*
 token.textClipping
 

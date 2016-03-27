@@ -21,6 +21,7 @@
 import datetime
 import json
 import re
+import sys
 
 from bs4 import BeautifulSoup
 
@@ -64,3 +65,26 @@ def convertBookmarkDivsToJson(divs):
         d['extended'] = extended.text if extended else ''
         bookmarks.append(d)
     return json.dumps(bookmarks)
+
+
+def main(xhtmlFile, path):
+    """
+    Convert XHTML file of exported Delicious bookmarks to JSON file.
+    """
+    xhtml = None
+    with open(xhtmlFile, 'r') as f:
+        xhtml = f.read()
+    soup = parseBookmarksHtml(xhtml)
+    data = convertBookmarkDivsToJson(soup)
+    with open(path, 'w') as f:
+        f.write(data)
+
+
+if __name__ == '__main__':
+    xhtmlFile = ''
+    try:
+        xhtmlFile = sys.argv[1]
+    except:
+        print("Usage: python3 convert.py <xhtml_file>")
+        sys.exit(1)
+    main(xhtmlFile, 'delicious.json')
