@@ -1,3 +1,16 @@
+# 
+# FILE: merge.py
+#
+# AUTHOR: Mario Diana <software@mariodiana.com>
+#
+# DESCRIPTION: Merge separate Delicious tag JSON files into 
+# one JSON file, converted into Pinboard format.
+#
+# LICENSE: BSD v3.
+#
+# TOUCHED: 2016.03.26
+#
+
 import glob
 import json
 import os.path
