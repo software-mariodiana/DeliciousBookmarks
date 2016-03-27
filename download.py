@@ -9,7 +9,7 @@
 #
 # LICENSE: BSD v3.
 #
-# TOUCHED: 2016.03.26
+# TOUCHED: 2016.03.27
 #
 
 import glob
@@ -19,9 +19,6 @@ import os.path
 import sys
 import urllib.error
 import urllib.request
-
-
-# urllib.error.HTTPError
 
 
 def fetchDataAtUri(uri):
