@@ -6,6 +6,8 @@
 # DESCRIPTION: Merge separate Delicious tag JSON files into 
 # one JSON file, converted into Pinboard format.
 #
+# SEE: https://pinboard.in/api
+#
 # LICENSE: BSD v3.
 #
 # TOUCHED: 2016.03.26
@@ -24,8 +26,11 @@ def convertBookmarks(deliciousBookmarks):
         bookmark = dict()
         bookmark['tags'] = tags
         bookmark['url'] = bm['u']
+        # 'description' is actually what we would think of as the URL's title.
         bookmark['description'] = bm['d']
+        # Datetime of when URL was added.
         bookmark['dt'] = bm['dt']
+        # 'extended' is actually what we would think of as the URL's description.
         bookmark['extended'] = bm['n']
         bookmarks.append(bookmark)
     return bookmarks

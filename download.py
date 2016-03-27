@@ -5,6 +5,8 @@
 #
 # DESCRIPTION: Retrieve bookmarks from Delicious.
 #
+# SEE: http://delicious.com/rss
+#
 # LICENSE: BSD v3.
 #
 # TOUCHED: 2016.03.26
