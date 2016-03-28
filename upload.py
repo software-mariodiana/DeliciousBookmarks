@@ -33,7 +33,6 @@ def upload(token, bookmark):
             print("Error uploading: %s" % (bookmarks['url']))
 
 
-
 def main(token, bookmarksFilePath):
     data = None
     with open(bookmarksFilePath, 'r') as f:
@@ -41,7 +40,6 @@ def main(token, bookmarksFilePath):
     bookmarks = json.loads(data)
     for aBookmark in bookmarks:
         upload(token, aBookmark)
-
 
 
 if __name__ == '__main__':
